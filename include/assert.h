@@ -51,8 +51,9 @@
 #else
 #define	_assert(e)	assert(e)
 
-#define	assert(e)	((e) ? (void)0 : __assert(__func__, __FILE__, \
-			    __LINE__, #e))
+//#define	assert(e)	((e) ? (void)0 : __assert(__func__, __FILE__, \
+//			    __LINE__, #e))
+#define	assert(e)	if(!(e)) { }
 #endif /* NDEBUG */
 
 #ifndef _ASSERT_H_

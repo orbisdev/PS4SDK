@@ -99,7 +99,7 @@ This will take some time, as it will build all libraries. In addition, if you ar
 from a **git pull**, `make clean && make` instead of `make` may be required (and is advised),
 to ensure proper functionality.
 
-## Instalation
+## Installation
 
 Before continue you need to be sure that the `PS4SDK` bash variable has been defined, because is in the specific folder used during the instalation process.
 

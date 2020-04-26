@@ -57,6 +57,7 @@ __divsf3 \
 __divsi3 \
 __divti3 \
 __divxc3 \
+__dso_handle \
 __dynamic_cast \
 __eqdf2 \
 __eqsf2 \
