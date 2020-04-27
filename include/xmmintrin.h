@@ -28,7 +28,9 @@
 
 typedef int __v4si __attribute__((__vector_size__(16)));
 typedef float __v4sf __attribute__((__vector_size__(16)));
-typedef float __m128 __attribute__((__vector_size__(16)));
+typedef float __m128 __attribute__((__vector_size__(16), __aligned__(16)));
+
+typedef float __m128_u __attribute__((__vector_size__(16), __aligned__(1)));
 
 /* Unsigned types */
 typedef unsigned int __v4su __attribute__((__vector_size__(16)));
@@ -40,8 +42,8 @@ typedef unsigned int __v4su __attribute__((__vector_size__(16)));
 #endif
 
 /* Define the default attributes for the functions in this file. */
-#define __DEFAULT_FN_ATTRS __attribute__((__always_inline__, __nodebug__, __target__("sse")))
-#define __DEFAULT_FN_ATTRS_MMX __attribute__((__always_inline__, __nodebug__, __target__("mmx,sse")))
+#define __DEFAULT_FN_ATTRS __attribute__((__always_inline__, __nodebug__, __target__("sse"), __min_vector_width__(128)))
+#define __DEFAULT_FN_ATTRS_MMX __attribute__((__always_inline__, __nodebug__, __target__("mmx,sse"), __min_vector_width__(64)))
 
 /// Adds the 32-bit float values in the low-order bits of the operands.
 ///
@@ -1752,7 +1754,7 @@ static __inline__ __m128 __DEFAULT_FN_ATTRS
 _mm_loadu_ps(const float *__p)
 {
   struct __loadu_ps {
-    __m128 __v;
+    __m128_u __v;
   } __attribute__((__packed__, __may_alias__));
   return ((struct __loadu_ps*)__p)->__v;
 }
@@ -1931,7 +1933,11 @@ _mm_setzero_ps(void)
 static __inline__ void __DEFAULT_FN_ATTRS
 _mm_storeh_pi(__m64 *__p, __m128 __a)
 {
-  __builtin_ia32_storehps((__v2si *)__p, (__v4sf)__a);
+  typedef float __mm_storeh_pi_v2f32 __attribute__((__vector_size__(8)));
+  struct __mm_storeh_pi_struct {
+    __mm_storeh_pi_v2f32 __u;
+  } __attribute__((__packed__, __may_alias__));
+  ((struct __mm_storeh_pi_struct*)__p)->__u = __builtin_shufflevector(__a, __a, 2, 3);
 }
 
 /// Stores the lower 64 bits of a 128-bit vector of [4 x float] to a
@@ -1948,7 +1954,11 @@ _mm_storeh_pi(__m64 *__p, __m128 __a)
 static __inline__ void __DEFAULT_FN_ATTRS
 _mm_storel_pi(__m64 *__p, __m128 __a)
 {
-  __builtin_ia32_storelps((__v2si *)__p, (__v4sf)__a);
+  typedef float __mm_storeh_pi_v2f32 __attribute__((__vector_size__(8)));
+  struct __mm_storeh_pi_struct {
+    __mm_storeh_pi_v2f32 __u;
+  } __attribute__((__packed__, __may_alias__));
+  ((struct __mm_storeh_pi_struct*)__p)->__u = __builtin_shufflevector(__a, __a, 0, 1);
 }
 
 /// Stores the lower 32 bits of a 128-bit vector of [4 x float] to a
@@ -1987,7 +1997,7 @@ static __inline__ void __DEFAULT_FN_ATTRS
 _mm_storeu_ps(float *__p, __m128 __a)
 {
   struct __storeu_ps {
-    __m128 __v;
+    __m128_u __v;
   } __attribute__((__packed__, __may_alias__));
   ((struct __storeu_ps*)__p)->__v = __a;
 }
@@ -2671,7 +2681,8 @@ _mm_unpacklo_ps(__m128 __a, __m128 __b)
 static __inline__ __m128 __DEFAULT_FN_ATTRS
 _mm_move_ss(__m128 __a, __m128 __b)
 {
-  return __builtin_shufflevector((__v4sf)__a, (__v4sf)__b, 4, 1, 2, 3);
+  __a[0] = __b[0];
+  return __a;
 }
 
 /// Constructs a 128-bit floating-point vector of [4 x float]. The lower

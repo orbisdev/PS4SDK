@@ -2273,11 +2273,7 @@ _mm_adds_epu16(__m128i __a, __m128i __b)
 static __inline__ __m128i __DEFAULT_FN_ATTRS
 _mm_avg_epu8(__m128i __a, __m128i __b)
 {
-  typedef unsigned short __v16hu __attribute__ ((__vector_size__ (32)));
-  return (__m128i)__builtin_convertvector(
-               ((__builtin_convertvector((__v16qu)__a, __v16hu) +
-                 __builtin_convertvector((__v16qu)__b, __v16hu)) + 1)
-                 >> 1, __v16qu);
+  return (__m128i)__builtin_ia32_pavgb128((__v16qi)__a, (__v16qi)__b);
 }
 
 /// Computes the rounded avarages of corresponding elements of two
@@ -2297,11 +2293,7 @@ _mm_avg_epu8(__m128i __a, __m128i __b)
 static __inline__ __m128i __DEFAULT_FN_ATTRS
 _mm_avg_epu16(__m128i __a, __m128i __b)
 {
-  typedef unsigned int __v8su __attribute__ ((__vector_size__ (32)));
-  return (__m128i)__builtin_convertvector(
-               ((__builtin_convertvector((__v8hu)__a, __v8su) +
-                 __builtin_convertvector((__v8hu)__b, __v8su)) + 1)
-                 >> 1, __v8hu);
+  return (__m128i)__builtin_ia32_pavgw128((__v8hi)__a, (__v8hi)__b);
 }
 
 /// Multiplies the corresponding elements of two 128-bit signed [8 x i16]
@@ -2793,8 +2785,26 @@ _mm_xor_si128(__m128i __a, __m128i __b)
 ///    An immediate value specifying the number of bytes to left-shift operand
 ///    \a a.
 /// \returns A 128-bit integer vector containing the left-shifted value.
-#define _mm_slli_si128(a, imm) \
-  (__m128i)__builtin_ia32_pslldqi128((__v2di)(__m128i)(a), (int)(imm) * 8)
+#define _mm_slli_si128(a, imm) __extension__ ({                              \
+  (__m128i)__builtin_shufflevector(                                          \
+                                 (__v16qi)_mm_setzero_si128(),               \
+                                 (__v16qi)(__m128i)(a),                      \
+                                 ((char)(imm)&0xF0) ?  0 : 16 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  1 : 17 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  2 : 18 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  3 : 19 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  4 : 20 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  5 : 21 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  6 : 22 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  7 : 23 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  8 : 24 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ?  9 : 25 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 10 : 26 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 11 : 27 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 12 : 28 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 13 : 29 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 14 : 30 - (char)(imm), \
+                                 ((char)(imm)&0xF0) ? 15 : 31 - (char)(imm)); })
 
 #define _mm_bslli_si128(a, imm) \
   (__m128i)__builtin_ia32_pslldqi128((__v2di)(__m128i)(a), (int)(imm) * 8)
@@ -3010,11 +3020,29 @@ _mm_sra_epi32(__m128i __a, __m128i __count)
 ///    An immediate value specifying the number of bytes to right-shift operand
 ///    \a a.
 /// \returns A 128-bit integer vector containing the right-shifted value.
-#define _mm_srli_si128(a, imm) \
-  (__m128i)__builtin_ia32_psrldqi128((__v2di)(__m128i)(a), (int)(imm) * 8)
+#define _mm_srli_si128(a, imm) __extension__ ({                              \
+  (__m128i)__builtin_shufflevector(                                          \
+                                 (__v16qi)(__m128i)(a),                      \
+                                 (__v16qi)_mm_setzero_si128(),               \
+                                 ((char)(imm)&0xF0) ? 16 : (char)(imm) + 0,  \
+                                 ((char)(imm)&0xF0) ? 17 : (char)(imm) + 1,  \
+                                 ((char)(imm)&0xF0) ? 18 : (char)(imm) + 2,  \
+                                 ((char)(imm)&0xF0) ? 19 : (char)(imm) + 3,  \
+                                 ((char)(imm)&0xF0) ? 20 : (char)(imm) + 4,  \
+                                 ((char)(imm)&0xF0) ? 21 : (char)(imm) + 5,  \
+                                 ((char)(imm)&0xF0) ? 22 : (char)(imm) + 6,  \
+                                 ((char)(imm)&0xF0) ? 23 : (char)(imm) + 7,  \
+                                 ((char)(imm)&0xF0) ? 24 : (char)(imm) + 8,  \
+                                 ((char)(imm)&0xF0) ? 25 : (char)(imm) + 9,  \
+                                 ((char)(imm)&0xF0) ? 26 : (char)(imm) + 10, \
+                                 ((char)(imm)&0xF0) ? 27 : (char)(imm) + 11, \
+                                 ((char)(imm)&0xF0) ? 28 : (char)(imm) + 12, \
+                                 ((char)(imm)&0xF0) ? 29 : (char)(imm) + 13, \
+                                 ((char)(imm)&0xF0) ? 30 : (char)(imm) + 14, \
+                                 ((char)(imm)&0xF0) ? 31 : (char)(imm) + 15); })
 
 #define _mm_bsrli_si128(a, imm) \
-  (__m128i)__builtin_ia32_psrldqi128((__v2di)(__m128i)(a), (int)(imm) * 8)
+  _mm_srli_si128((a), (imm))
 
 /// Right-shifts each of 16-bit values in the 128-bit integer vector
 ///    operand by the specified number of bits. High-order bits are cleared.
@@ -4246,55 +4274,20 @@ _mm_packus_epi16(__m128i __a, __m128i __b)
   return (__m128i)__builtin_ia32_packuswb128((__v8hi)__a, (__v8hi)__b);
 }
 
-/// Extracts 16 bits from a 128-bit integer vector of [8 x i16], using
-///    the immediate-value parameter as a selector.
-///
-/// \headerfile <x86intrin.h>
-///
-/// This intrinsic corresponds to the <c> VPEXTRW / PEXTRW </c> instruction.
-///
-/// \param __a
-///    A 128-bit integer vector.
-/// \param __imm
-///    An immediate value. Bits [2:0] selects values from \a __a to be assigned
-///    to bits[15:0] of the result. \n
-///    000: assign values from bits [15:0] of \a __a. \n
-///    001: assign values from bits [31:16] of \a __a. \n
-///    010: assign values from bits [47:32] of \a __a. \n
-///    011: assign values from bits [63:48] of \a __a. \n
-///    100: assign values from bits [79:64] of \a __a. \n
-///    101: assign values from bits [95:80] of \a __a. \n
-///    110: assign values from bits [111:96] of \a __a. \n
-///    111: assign values from bits [127:112] of \a __a.
-/// \returns An integer, whose lower 16 bits are selected from the 128-bit
-///    integer vector parameter and the remaining bits are assigned zeros.
-#define _mm_extract_epi16(a, imm) \
-  (int)(unsigned short)__builtin_ia32_vec_ext_v8hi((__v8hi)(__m128i)(a), \
-                                                   (int)(imm))
+static __inline__ int __DEFAULT_FN_ATTRS
+_mm_extract_epi16(__m128i __a, int __imm)
+{
+  __v8hi __b = (__v8hi)__a;
+  return (unsigned short)__b[__imm & 7];
+}
 
-/// Constructs a 128-bit integer vector by first making a copy of the
-///    128-bit integer vector parameter, and then inserting the lower 16 bits
-///    of an integer parameter into an offset specified by the immediate-value
-///    parameter.
-///
-/// \headerfile <x86intrin.h>
-///
-/// This intrinsic corresponds to the <c> VPINSRW / PINSRW </c> instruction.
-///
-/// \param __a
-///    A 128-bit integer vector of [8 x i16]. This vector is copied to the
-///    result and then one of the eight elements in the result is replaced by
-///    the lower 16 bits of \a __b.
-/// \param __b
-///    An integer. The lower 16 bits of this parameter are written to the
-///    result beginning at an offset specified by \a __imm.
-/// \param __imm
-///    An immediate value specifying the bit offset in the result at which the
-///    lower 16 bits of \a __b are written.
-/// \returns A 128-bit integer vector containing the constructed values.
-#define _mm_insert_epi16(a, b, imm) \
-  (__m128i)__builtin_ia32_vec_set_v8hi((__v8hi)(__m128i)(a), (int)(b), \
-                                       (int)(imm))
+static __inline__ __m128i __DEFAULT_FN_ATTRS
+_mm_insert_epi16(__m128i __a, int __b, int __imm)
+{
+  __v8hi __c = (__v8hi)__a;
+  __c[__imm & 7] = __b;
+  return (__m128i)__c;
+}
 
 /// Copies the values of the most significant bits from each 8-bit
 ///    element in a 128-bit integer vector of [16 x i8] to create a 16-bit mask
@@ -4314,96 +4307,27 @@ _mm_movemask_epi8(__m128i __a)
   return __builtin_ia32_pmovmskb128((__v16qi)__a);
 }
 
-/// Constructs a 128-bit integer vector by shuffling four 32-bit
-///    elements of a 128-bit integer vector parameter, using the immediate-value
-///    parameter as a specifier.
-///
-/// \headerfile <x86intrin.h>
-///
-/// \code
-/// __m128i _mm_shuffle_epi32(__m128i a, const int imm);
-/// \endcode
-///
-/// This intrinsic corresponds to the <c> VPSHUFD / PSHUFD </c> instruction.
-///
-/// \param a
-///    A 128-bit integer vector containing the values to be copied.
-/// \param imm
-///    An immediate value containing an 8-bit value specifying which elements to
-///    copy from a. The destinations within the 128-bit destination are assigned
-///    values as follows: \n
-///    Bits [1:0] are used to assign values to bits [31:0] of the result. \n
-///    Bits [3:2] are used to assign values to bits [63:32] of the result. \n
-///    Bits [5:4] are used to assign values to bits [95:64] of the result. \n
-///    Bits [7:6] are used to assign values to bits [127:96] of the result. \n
-///    Bit value assignments: \n
-///    00: assign values from bits [31:0] of \a a. \n
-///    01: assign values from bits [63:32] of \a a. \n
-///    10: assign values from bits [95:64] of \a a. \n
-///    11: assign values from bits [127:96] of \a a.
-/// \returns A 128-bit integer vector containing the shuffled values.
-#define _mm_shuffle_epi32(a, imm) \
-  (__m128i)__builtin_ia32_pshufd((__v4si)(__m128i)(a), (int)(imm))
+#define _mm_shuffle_epi32(a, imm) __extension__ ({ \
+  (__m128i)__builtin_shufflevector((__v4si)(__m128i)(a), \
+                                   (__v4si)_mm_undefined_si128(), \
+                                   ((imm) >> 0) & 0x3, ((imm) >> 2) & 0x3, \
+                                   ((imm) >> 4) & 0x3, ((imm) >> 6) & 0x3); })
 
-/// Constructs a 128-bit integer vector by shuffling four lower 16-bit
-///    elements of a 128-bit integer vector of [8 x i16], using the immediate
-///    value parameter as a specifier.
-///
-/// \headerfile <x86intrin.h>
-///
-/// \code
-/// __m128i _mm_shufflelo_epi16(__m128i a, const int imm);
-/// \endcode
-///
-/// This intrinsic corresponds to the <c> VPSHUFLW / PSHUFLW </c> instruction.
-///
-/// \param a
-///    A 128-bit integer vector of [8 x i16]. Bits [127:64] are copied to bits
-///    [127:64] of the result.
-/// \param imm
-///    An 8-bit immediate value specifying which elements to copy from \a a. \n
-///    Bits[1:0] are used to assign values to bits [15:0] of the result. \n
-///    Bits[3:2] are used to assign values to bits [31:16] of the result. \n
-///    Bits[5:4] are used to assign values to bits [47:32] of the result. \n
-///    Bits[7:6] are used to assign values to bits [63:48] of the result. \n
-///    Bit value assignments: \n
-///    00: assign values from bits [15:0] of \a a. \n
-///    01: assign values from bits [31:16] of \a a. \n
-///    10: assign values from bits [47:32] of \a a. \n
-///    11: assign values from bits [63:48] of \a a. \n
-/// \returns A 128-bit integer vector containing the shuffled values.
-#define _mm_shufflelo_epi16(a, imm) \
-  (__m128i)__builtin_ia32_pshuflw((__v8hi)(__m128i)(a), (int)(imm))
+#define _mm_shufflelo_epi16(a, imm) __extension__ ({ \
+  (__m128i)__builtin_shufflevector((__v8hi)(__m128i)(a), \
+                                   (__v8hi)_mm_undefined_si128(), \
+                                   ((imm) >> 0) & 0x3, ((imm) >> 2) & 0x3, \
+                                   ((imm) >> 4) & 0x3, ((imm) >> 6) & 0x3, \
+                                   4, 5, 6, 7); })
 
-/// Constructs a 128-bit integer vector by shuffling four upper 16-bit
-///    elements of a 128-bit integer vector of [8 x i16], using the immediate
-///    value parameter as a specifier.
-///
-/// \headerfile <x86intrin.h>
-///
-/// \code
-/// __m128i _mm_shufflehi_epi16(__m128i a, const int imm);
-/// \endcode
-///
-/// This intrinsic corresponds to the <c> VPSHUFHW / PSHUFHW </c> instruction.
-///
-/// \param a
-///    A 128-bit integer vector of [8 x i16]. Bits [63:0] are copied to bits
-///    [63:0] of the result.
-/// \param imm
-///    An 8-bit immediate value specifying which elements to copy from \a a. \n
-///    Bits[1:0] are used to assign values to bits [79:64] of the result. \n
-///    Bits[3:2] are used to assign values to bits [95:80] of the result. \n
-///    Bits[5:4] are used to assign values to bits [111:96] of the result. \n
-///    Bits[7:6] are used to assign values to bits [127:112] of the result. \n
-///    Bit value assignments: \n
-///    00: assign values from bits [79:64] of \a a. \n
-///    01: assign values from bits [95:80] of \a a. \n
-///    10: assign values from bits [111:96] of \a a. \n
-///    11: assign values from bits [127:112] of \a a. \n
-/// \returns A 128-bit integer vector containing the shuffled values.
-#define _mm_shufflehi_epi16(a, imm) \
-  (__m128i)__builtin_ia32_pshufhw((__v8hi)(__m128i)(a), (int)(imm))
+#define _mm_shufflehi_epi16(a, imm) __extension__ ({ \
+  (__m128i)__builtin_shufflevector((__v8hi)(__m128i)(a), \
+                                   (__v8hi)_mm_undefined_si128(), \
+                                   0, 1, 2, 3, \
+                                   4 + (((imm) >> 0) & 0x3), \
+                                   4 + (((imm) >> 2) & 0x3), \
+                                   4 + (((imm) >> 4) & 0x3), \
+                                   4 + (((imm) >> 6) & 0x3)); })
 
 /// Unpacks the high-order (index 8-15) values from two 128-bit vectors
 ///    of [16 x i8] and interleaves them into a 128-bit vector of [16 x i8].

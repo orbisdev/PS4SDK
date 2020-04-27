@@ -54,6 +54,7 @@
 #include <wmmintrin.h>
 #endif
 
+#ifndef __ORBIS__
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__CLFLUSHOPT__)
 #include <clflushoptintrin.h>
 #endif
@@ -62,12 +63,14 @@
 #include <clwbintrin.h>
 #endif
 
-#if !defined(_MSC_VER) || __has_feature(modules) || defined(__AVX__)
-#include <avxintrin.h>
-#endif
-
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__AVX2__)
 #include <avx2intrin.h>
+#endif
+
+#endif //
+
+#if !defined(_MSC_VER) || __has_feature(modules) || defined(__AVX__)
+#include <avxintrin.h>
 #endif
 
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__F16C__)
@@ -90,9 +93,7 @@
 #include <lzcntintrin.h>
 #endif
 
-#if !defined(_MSC_VER) || __has_feature(modules) || defined(__POPCNT__)
-#include <popcntintrin.h>
-#endif
+#ifndef __ORBIS__
 
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__FMA__)
 #include <fmaintrin.h>
@@ -203,6 +204,7 @@
 #include <vaesintrin.h>
 #endif
 
+
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__GFNI__)
 #include <gfniintrin.h>
 #endif
@@ -218,6 +220,8 @@ _rdpid_u32(void) {
   return __builtin_ia32_rdpid();
 }
 #endif // __RDPID__
+
+#endif //
 
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__RDRND__)
 static __inline__ int __attribute__((__always_inline__, __nodebug__, __target__("rdrnd")))
@@ -306,6 +310,7 @@ _writegsbase_u64(unsigned long long __V)
 #endif
 #endif /* __FSGSBASE__ */
 
+#ifndef __ORBIS__
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__RTM__)
 #include <rtmintrin.h>
 #include <xtestintrin.h>
@@ -315,10 +320,13 @@ _writegsbase_u64(unsigned long long __V)
 #include <shaintrin.h>
 #endif
 
+#endif //
+
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__FXSR__)
 #include <fxsrintrin.h>
 #endif
 
+#ifndef __ORBIS__
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__XSAVE__)
 #include <xsaveintrin.h>
 #endif
@@ -379,5 +387,7 @@ _writegsbase_u64(unsigned long long __V)
 #if !defined(_MSC_VER) || __has_feature(modules) || defined(__INVPCID__)
 #include <invpcidintrin.h>
 #endif
+
+#endif //
 
 #endif /* __IMMINTRIN_H */
